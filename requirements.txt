@@ -1,0 +1,5 @@
+numpy
+pillow
+mpmath
+tqdm
+gmpy2
