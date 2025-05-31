@@ -1,0 +1,317 @@
+[INFO] gmpy2 is installed. Using optimized backend.
+===== BEGIN DEEP ZOOM =====
+[Frame 0] START - Zoom=1.0, Center=(-0.5, 0.0), Path=C:\Users\ThomasFahey\Desktop\MbSZ\output\frame_0000.png
+[Frame 0] Skipped: Already exists at C:\Users\ThomasFahey\Desktop\MbSZ\output\frame_0000.png
+[Frame 1] START - Zoom=1.0154776572977835, Center=(-0.5000002257633697, 1.2215147565763553e-07), Path=C:\Users\ThomasFahey\Desktop\MbSZ\output\frame_0001.png
+[DEBUG] Precision set to 100 decimal places for zoom=1.015477657297783498080434583243913948535919189453125
+[Frame 1] Mandelbrot Start — Re:(-4.0013628899277347669595788919871656233185663788680123731212507150674911424825717477668774473689757,3.0013624384009954357168131627297943467015162079695748731212507150674911424825717477668774473689757), Im:(-1.969516376440979821197334613832601516053947270045345465517214165716652866302792210842910955807056556,1.969516620743931136468392328592067053333706232131252580186894761114602085052792210842910955807056556)
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+
+Y: 0[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+
+Y: 10[INFO] gmpy2 is installed. Using optimized backend.
+
+Y: 20
+Y: 30
+Y: 40
+Y: 50
+Y: 60
+Y: 70
+Y: 80
+Y: 90
+Y: 100
+Y: 110
+Y: 120
+Y: 130
+Y: 140
+Y: 150
+Y: 160
+Y: 170
+Y: 180
+Y: 190
+Y: 200
+Y: 210
+Y: 220
+Y: 230
+Y: 240
+Y: 250
+Y: 260
+Y: 270
+Y: 280
+Y: 290
+Y: 300
+Y: 310
+Y: 320
+Y: 330
+Y: 340
+Y: 350
+Y: 360
+Y: 370
+Y: 380
+Y: 390
+Y: 400
+Y: 410
+Y: 420
+Y: 430
+Y: 440
+Y: 450
+Y: 460
+Y: 470
+Y: 480
+Y: 490
+Y: 500
+Y: 510
+Y: 520
+Y: 530
+Y: 540
+Y: 550
+Y: 560
+Y: 570
+Y: 580
+Y: 590
+Y: 600
+Y: 610
+Y: 620
+Y: 630
+Y: 640
+Y: 650
+Y: 660
+Y: 670
+Y: 680
+Y: 690
+Y: 700
+Y: 710
+Y: 720
+Y: 730
+Y: 740
+Y: 750
+Y: 760
+Y: 770
+Y: 780
+Y: 790
+Y: 800
+Y: 810
+Y: 820
+Y: 830
+Y: 840
+Y: 850
+Y: 860
+Y: 870
+Y: 880
+Y: 890
+Y: 900
+Y: 910
+Y: 920
+Y: 930
+Y: 940
+Y: 950
+Y: 960
+Y: 970
+Y: 980
+Y: 990
+Y: 1000
+Y: 1010
+Y: 1020
+Y: 1030
+Y: 1040
+Y: 1050
+Y: 1060
+Y: 1070[Frame 1] Mandelbrot Done — Time=471.81s
+[Frame 1] SUCCESS: Zoom=1e0, Saved to C:\Users\ThomasFahey\Desktop\MbSZ\output\frame_0001.png, Time=472.00s
+[Frame 2] START - Zoom=1.0311948724709945, Center=(-0.5000009027187042, 4.884247697658042e-07), Path=C:\Users\ThomasFahey\Desktop\MbSZ\output\frame_0002.png
+[DEBUG] Precision set to 100 decimal places for zoom=1.0311948724709945057753657238208688795566558837890625
+[Frame 2] Mandelbrot Start — Re:(-3.947996670032380609484849157048029929688405716795130752632121385391134052443485157700135362680123483,2.947994864594972145312627145791066915085744583982630752632121385391134052443485157700135362680123483), Im:(-1.939497130689173304146337367779851179239396145471143167751869738225508765254983706180221904144001985,1.939498107538712835754734347164310536893121110091921504872879564885665015254983706180221904144001985)
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+
+Y: 0[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+
+Y: 10[INFO] gmpy2 is installed. Using optimized backend.
+
+Y: 20
+Y: 30
+Y: 40
+Y: 50
+Y: 60
+Y: 70
+Y: 80
+Y: 90
+Y: 100
+Y: 110
+Y: 120
+Y: 130
+Y: 140
+Y: 150
+Y: 160
+Y: 170
+Y: 180
+Y: 190
+Y: 200
+Y: 210
+Y: 220
+Y: 230
+Y: 240
+Y: 250
+Y: 260
+Y: 270
+Y: 280
+Y: 290
+Y: 300
+Y: 310
+Y: 320
+Y: 330
+Y: 340
+Y: 350
+Y: 360
+Y: 370
+Y: 380
+Y: 390
+Y: 400
+Y: 410
+Y: 420
+Y: 430
+Y: 440
+Y: 450
+Y: 460
+Y: 470
+Y: 480
+Y: 490
+Y: 500
+Y: 510
+Y: 520
+Y: 530
+Y: 540
+Y: 550
+Y: 560
+Y: 570
+Y: 580
+Y: 590
+Y: 600
+Y: 610
+Y: 620
+Y: 630
+Y: 640
+Y: 650
+Y: 660
+Y: 670
+Y: 680
+Y: 690
+Y: 700
+Y: 710
+Y: 720
+Y: 730
+Y: 740
+Y: 750
+Y: 760
+Y: 770
+Y: 780
+Y: 790
+Y: 800
+Y: 810
+Y: 820
+Y: 830
+Y: 840
+Y: 850
+Y: 860
+Y: 870
+Y: 880
+Y: 890
+Y: 900
+Y: 910
+Y: 920
+Y: 930
+Y: 940
+Y: 950
+Y: 960
+Y: 970
+Y: 980
+Y: 990
+Y: 1000
+Y: 1010
+Y: 1020
+Y: 1030
+Y: 1040
+Y: 1050
+Y: 1060
+Y: 1070[Frame 2] Mandelbrot Done — Time=488.02s
+[Frame 2] SUCCESS: Zoom=1e0, Saved to C:\Users\ThomasFahey\Desktop\MbSZ\output\frame_0002.png, Time=488.12s
+[Frame 3] START - Zoom=1.047155353314332, Center=(-0.5000020303638426, 1.0985481830273991e-06), Path=C:\Users\ThomasFahey\Desktop\MbSZ\output\frame_0003.png
+[DEBUG] Precision set to 100 decimal places for zoom=1.047155353314332071335002183332107961177825927734375
+[Frame 3] Mandelbrot Start — Re:(-3.8954443057644621334647943657562244019995602759711755825093463398209807718796184073787368742664846,2.8954402450367769156516622532596919022093686255805505825093463398209807718796184073787368742664846), Im:(-1.909935181364665561187658082988508203223773974741282268034707089874615768293135130296730911339273362,1.909937378461031615985872117824182083376513886605328275429497739288678268293135130296730911339273362)
+[INFO] gmpy2 is installed. Using optimized backend.
+
+Y: 0[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+[INFO] gmpy2 is installed. Using optimized backend.
+
+Y: 10
+Y: 20
+Y: 30
+Y: 40
+Y: 50
+Y: 60
+Y: 70
+Y: 80
+Y: 90
+Y: 100
+Y: 110
+Y: 120
+Y: 130
+Y: 140
+Y: 150
+Y: 160
+Y: 170
+Y: 180
+Y: 190
+Y: 200
+Y: 210
+Y: 220
+Y: 230
+Y: 240
+Y: 250
+Y: 260
+Y: 270
+Y: 280
+Y: 290
+Y: 300
+Y: 310
+Y: 320
+Y: 330
+Y: 340
+Y: 350
+Y: 360
+Y: 370
+Y: 380
+Y: 390
+Y: 400
+Y: 410
+Y: 420
+Y: 430
+Y: 440
+Y: 450
+Y: 460
