@@ -2,10 +2,6 @@
 
 A high-precision Mandelbrot set renderer written in Python that zooms smoothly from the classic view into Seahorse Valley — all the way to 1e12 magnification. The system supports parallelized frame rendering, smooth color gradients based on log-escape time, adaptive precision, and ffmpeg video encoding.
 
-## Demo
-
-(Replace with a GIF or video link showcasing the zoom)
-
 ## Features
 
 - Deep Zoom: Zooms from 1× to 1e12 into the Mandelbrot set
@@ -24,18 +20,6 @@ pip install -r requirements.txt
 ```
 
 Python 3.9+ recommended. Optional: install `gmpy2` for much faster precision math via optimized backend.
-
-## Project Structure
-
-```
-├── main.py            # Main runner (deep zoom + video)
-├── renderer.py        # Mandelbrot rendering logic (row-level multiprocessing)
-├── color.py           # Smooth coloring function
-├── config.py          # Zoom range, resolution, center points, etc.
-├── utils.py           # Precision setup and gmpy2 detection
-├── requirements.txt
-└── output/            # Rendered PNG frames
-```
 
 ## Usage
 
