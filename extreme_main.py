@@ -11,13 +11,13 @@ from tqdm import tqdm
 from mpmath import mpf, log10
 from PIL import Image
 
-# ─── GPU‐accelerated renderer ────────────────────────────────────────────────
-from gpu_renderer import render_gpu_frame, zoom_fits_double
+# ─── GPU‐accelerated renderer (with deep Zoom support) ─────────────────────────
+from extreme_gpu_renderer import render_gpu_frame, zoom_fits_double
 
-# ─── CPU/mpmath arbitrary‐precision renderer ─────────────────────────────────
+# ─── CPU/mpmath arbitrary‐precision fallback (used only if absolutely needed) ──
 from renderer import mandelbrot_ap
 
-# ─── Configuration ────────────────────────────────────────────────────────────
+# ─── Configuration (from config.py) ────────────────────────────────────────────
 try:
     from config import (
         OUTPUT_DIR,
@@ -36,7 +36,7 @@ except ImportError as e:
     print("Details:", e)
     sys.exit(1)
 
-# ─── Optional “--force” flag ───────────────────────────────────────────────────
+# ─── Optional “--force” flag ────────────────────────────────────────────────────
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--force", action="store_true",
@@ -47,7 +47,7 @@ FORCE_OVERWRITE = args.force
 
 # ─── Constants for a 60 FPS video ──────────────────────────────────────────────
 FRAMERATE    = 60
-TOTAL_FRAMES = DURATION_SEC * FRAMERATE  # = 36000 for 10 min × 60 fps
+TOTAL_FRAMES = DURATION_SEC * FRAMERATE  # e.g. 600 s × 60 fps = 36 000 frames
 
 # ─── Simple ASCII‐only logger ─────────────────────────────────────────────────
 def log(msg: str) -> None:
@@ -57,15 +57,17 @@ def log(msg: str) -> None:
 # ────────────────────────────────────────────────────────────────────────────────
 # render_frame(i, center, zoom)
 #
-# Renders exactly one frame #i at (center, zoom). Saves to:
-#    OUTPUT_DIR/frame_{i:04d}.png
-# If zoom_fits_double(float(zoom)) → GPU double precision; else → CPU/mpmath.
+# Renders exactly one frame #i using either:
+#   - double‐precision GPU (if zoom < 1e12), or
+#   - perturbation+double‐double GPU (if zoom ≥ 1e12),
+#   - fallback CPU/mpmath if GPU fails for some reason.
+# Saves the result to OUTPUT_DIR/frame_{i:04d}.png.
 # ────────────────────────────────────────────────────────────────────────────────
 def render_frame(i: int, center: tuple, zoom) -> None:
     """
     i:      integer frame index ∈ [0 .. TOTAL_FRAMES-1]
-    center: (cx, cy) as Python floats or mpf (float casting OK for GPU)
-    zoom:   either a float (GPU path) or an mpf (CPU path)
+    center: (cx, cy) as Python floats or mpf (float-castable)
+    zoom:   either a float (for GPU) or mpf (for CPU fallback)
 
     If frame_{i:04d}.png already exists and --force is False, skip rendering.
     """
@@ -81,13 +83,15 @@ def render_frame(i: int, center: tuple, zoom) -> None:
 
     log(f"[Frame {i:04d}] START: center={center}, zoom={zoom}, path={output_path}")
     t0 = time.time()
+
     try:
-        # GPU path if float(zoom) < 1e12
-        z_float = float(zoom)
-        if zoom_fits_double(z_float):
-            img = render_gpu_frame(center, z_float, WIDTH, HEIGHT, MAX_ITER)
+        # Convert zoom to float for the GPU decision
+        zf = float(zoom)
+        if zoom_fits_double(zf):
+            # GPU path (shallow or deep) handles double‐precision or perturbation internally
+            img = render_gpu_frame(center, zf, WIDTH, HEIGHT, MAX_ITER)
         else:
-            # CPU/mpmath fallback
+            # Extremely deep beyond GPU double-double range → CPU/mpmath fallback
             img = mandelbrot_ap(
                 center=center,
                 zoom=mpf(zoom),
@@ -111,103 +115,61 @@ def render_frame(i: int, center: tuple, zoom) -> None:
     else:
         elapsed = time.time() - t0
         try:
-            # Print zoom as “1eN” if possible
             z_msg = f"1e{int(log10(mpf(zoom)))}"
         except Exception:
             z_msg = str(zoom)
         log(f"[Frame {i:04d}] DONE: zoom~{z_msg}, time={elapsed:.2f}s")
 
 # ────────────────────────────────────────────────────────────────────────────────
-# crop_and_resize(prev_i, curr_i, zoom_factors)
-#
-# For an intermediate frame curr_i (where prev_i = floor(curr_i/10)*10 is the
-# last anchor), open frame_{prev_i:04d}.png, crop its center by factor
-#   crop_scale = zoom_factors[prev_i] / zoom_factors[curr_i],
-# then resize back to (WIDTH, HEIGHT), and save as frame_{curr_i:04d}.png.
-# ────────────────────────────────────────────────────────────────────────────────
-def crop_and_resize(prev_i: int, curr_i: int, zoom_factors: np.ndarray) -> None:
-    base_path   = Path(OUTPUT_DIR) / f"frame_{prev_i:04d}.png"
-    target_path = Path(OUTPUT_DIR) / f"frame_{curr_i:04d}.png"
-
-    # Skip if exists and no --force
-    if target_path.exists() and not FORCE_OVERWRITE:
-        log(f"[Frame {curr_i:04d}] SKIP crop: already exists.")
-        return
-
-    if not base_path.exists():
-        log(f"[Frame {curr_i:04d}] ERROR: base frame {prev_i:04d} not found for cropping.")
-        return
-
-    # 1) Open the anchor image
-    img = Image.open(str(base_path))
-    w, h = img.size  # should match (WIDTH, HEIGHT)
-
-    # 2) Compute crop_scale = zoom_prev / zoom_curr  (both mpf → float < 1.0)
-    zoom_prev = zoom_factors[prev_i]
-    zoom_curr = zoom_factors[curr_i]
-    crop_scale = float(zoom_prev / zoom_curr)  # 0 < crop_scale ≤ 1
-
-    # 3) Determine pixel dims of the crop
-    crop_w = max(1, int(round(w * crop_scale)))
-    crop_h = max(1, int(round(h * crop_scale)))
-
-    left = (w - crop_w) // 2
-    top  = (h - crop_h) // 2
-    right  = left + crop_w
-    bottom = top + crop_h
-
-    # 4) Crop and resize back to full resolution
-    cropped = img.crop((left, top, right, bottom))
-    zoomed  = cropped.resize((w, h), resample=Image.LANCZOS)
-
-    # 5) Save result
-    zoomed.save(str(target_path), format="PNG")
-    log(f"[Frame {curr_i:04d}] CROPPED from {prev_i:04d} (scale={crop_scale:.6e}), saved.")
-
-# ────────────────────────────────────────────────────────────────────────────────
 # deep_zoom_pipeline()
 #
-# 1) Compute per-frame multiplier r = (ZOOM_END/ZOOM_START)^(1/(TOTAL_FRAMES-1)).
-# 2) Build zoom_factors list of length TOTAL_FRAMES: zoom_factors[i] = ZOOM_START * r^i (mpf).
-# 3) For each frame i in [0..TOTAL_FRAMES-1]:
-#      if i % 10 == 0 → call render_frame(i, ..., zoom_factors[i])
-#      else           → call crop_and_resize(prev_anchor, i, zoom_factors)
+# 1) Build per-frame zoom_factors using a geometric sequence (mpf).
+# 2) For i in [0..TOTAL_FRAMES-1]:
+#      u = i/(TOTAL_FRAMES-1)
+#      center = interpolate(START_CENTER → END_CENTER) with smoothstep (mpf).
+#      zoom   = zoom_factors[i]
+#      render_frame(i, center, zoom)
 # ────────────────────────────────────────────────────────────────────────────────
 def deep_zoom_pipeline() -> None:
     Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
-    log("===== BEGIN 10-MINUTE DEEP ZOOM (36 000 FRAMES) =====")
+    log("===== BEGIN DEEP ZOOM (ALL FRAMES VIA GPU OR FALLBACK) =====")
 
     if TOTAL_FRAMES <= 0:
         log(f"ERROR: TOTAL_FRAMES = {TOTAL_FRAMES} (must be > 0). Exiting.")
         print(f"→ TOTAL_FRAMES = {TOTAL_FRAMES}. Nothing to do.")
         return
 
-    # 1) Compute per-frame multiplier r
+    # Build geometry‐spaced zoom array of length TOTAL_FRAMES:
     from mpmath import mpf
+    zoom_factors = np.array([mpf(1)] * TOTAL_FRAMES, dtype=object)
     r = (ZOOM_END / ZOOM_START) ** ( mpf(1) / mpf(TOTAL_FRAMES - 1) )
+    for i in range(TOTAL_FRAMES):
+        zoom_factors[i] = ZOOM_START * (r ** mpf(i))
 
-    # 2) Build zoom_factors[i] = ZOOM_START * r^i (all mpf)
-    zoom_factors = [ZOOM_START * (r ** mpf(i)) for i in range(TOTAL_FRAMES)]
+    # Helper functions for center interpolation and smoothstep
+    def smoothstep(t):
+        return t * t * (3 - 2 * t)
 
-    # 3) Loop through all frames
+    def interpolate(start, end, t):
+        return (
+            float((1 - t) * mpf(start[0]) + t * mpf(end[0])),
+            float((1 - t) * mpf(start[1]) + t * mpf(end[1]))
+        )
+
     for i in tqdm(range(TOTAL_FRAMES), desc="Rendering all frames"):
-        center = START_CENTER  # no pan, pure zoom-in-place
-        zoom   = zoom_factors[i]
+        u = mpf(i) / mpf(TOTAL_FRAMES - 1)
+        t = smoothstep(float(u))
+        center = interpolate(START_CENTER, END_CENTER, t)
+        zoom = zoom_factors[i]
 
-        if i % 10 == 0:
-            # Full Mandelbrot render every 10th frame
-            render_frame(i, center, zoom)
-        else:
-            # Crop/resample from the last multiple-of-10 anchor
-            prev_anchor = (i // 10) * 10
-            crop_and_resize(prev_anchor, i, zoom_factors)
+        render_frame(i, center, zoom)
 
     log("===== END DEEP ZOOM PIPELINE =====")
 
 # ────────────────────────────────────────────────────────────────────────────────
 # generate_video()
 #
-# Uses ffmpeg to stitch frames into mandelbrot_zoom_60fps.mp4 at 60 fps.
+#  Uses ffmpeg to stitch frames into mandelbrot_zoom_60fps.mp4 at 60 fps.
 # ────────────────────────────────────────────────────────────────────────────────
 def generate_video() -> None:
     if TOTAL_FRAMES <= 0:
@@ -240,8 +202,8 @@ def generate_video() -> None:
 # ENTRY POINT
 # ────────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    print("MAIN: Starting 10-minute (36 000-frame) deep-zoom pipeline…")
-    log("MAIN: Starting 10-minute deep-zoom pipeline…")
+    print("MAIN: Starting deep‐zoom pipeline…")
+    log("MAIN: Starting deep‐zoom pipeline…")
     start_time = time.time()
 
     try:

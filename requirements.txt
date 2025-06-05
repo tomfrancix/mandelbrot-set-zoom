@@ -3,3 +3,6 @@ pillow
 mpmath
 tqdm
 gmpy2
+numba
+opencv-python
+natsort
