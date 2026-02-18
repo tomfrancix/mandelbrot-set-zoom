@@ -1,8 +1,6 @@
-numpy
-pillow
-mpmath
-tqdm
-gmpy2
-numba
-opencv-python
-natsort
+# Install core:
+pip install -r requirements-core.txt
+# Optional GPU:
+pip install -r requirements-gpu.txt
+# Optional video:
+pip install -r requirements-video.txt

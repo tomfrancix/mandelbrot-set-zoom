@@ -1,6 +1,16 @@
+# Mandelbrot Set Zoom
+
+![A snapshot](image-2.png)
+
+This repo renders Mandelbrot deep-zoom frame sequences and encodes them into video.
+
+---
 # Mandelbrot Deep Zoom Renderer
 
+
 A high-precision Mandelbrot set renderer written in Python that zooms smoothly from the classic view into Seahorse Valley — all the way to 1e12 magnification. The system supports parallelized frame rendering, smooth color gradients based on log-escape time, adaptive precision, and ffmpeg video encoding.
+
+![A snapshot](image-1.png)
 
 ## Features
 
@@ -58,6 +68,23 @@ To regenerate the video from frames:
 from main import generate_video
 generate_video()
 ```
+
+## Unified CLI (recommended)
+
+```bash
+pip install -r requirements-core.txt
+# optional:
+# pip install -r requirements-gpu.txt
+# pip install -r requirements-video.txt
+
+python -m mandelzoom render --config config.sample.json --renderer auto
+python -m mandelzoom encode --config config.sample.json
+```
+
+`render_every_n > 1` enables **preview interpolation** (crop/resample between keyframes). It is lossy; use `1` for true rendering.
+
+Each render writes `artifacts/run.json` capturing config + environment details.
+
 
 ## Troubleshooting
 
