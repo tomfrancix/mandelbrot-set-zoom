@@ -1,0 +1,2 @@
+# Optional GPU acceleration (requires CUDA drivers/runtime)
+numba>=0.59,<1

@@ -1,0 +1,6 @@
+# Optional video encoding via OpenCV
+opencv-python>=4.9,<5
+# Natural sorting for frame filenames
+natsort>=8.4,<9
+# Optional: reverse.py uses moviepy if you still want it
+moviepy>=1.0,<2

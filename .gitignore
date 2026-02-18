@@ -1,4 +1,15 @@
 venv/
-output/
-frames/
+.venv/
 __pycache__/
+.pytest_cache/
+*.pyc
+
+# Outputs / artefacts
+frames/
+output/
+artifacts/
+*.mp4
+
+# Logs
+*.log
+render.log

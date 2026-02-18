@@ -1,0 +1,16 @@
+{
+  "width": 1920,
+  "height": 1080,
+  "fps": 60,
+  "total_frames": 600,
+  "start_zoom": 1.0,
+  "end_zoom": 1000000.0,
+  "center": [
+    -0.743643887037151,
+    0.13182590420533
+  ],
+  "max_iter": 1500,
+  "frames_dir": "frames",
+  "output_video": "mandelbrot_zoom.mp4",
+  "render_every_n": 1
+}

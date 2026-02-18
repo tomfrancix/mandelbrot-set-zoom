@@ -1,0 +1,10 @@
+[project]
+name = "mandelbrot-set-zoom"
+version = "0.1.0"
+description = "Mandelbrot deep-zoom renderer (CPU/GPU) and video encoder"
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+
+[tool.ruff]
+line-length = 100
