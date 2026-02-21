@@ -6,6 +6,7 @@ from color import get_smooth_color
 from utils import set_precision
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor
+import os
 
 
 def render_row(args):
@@ -13,9 +14,8 @@ def render_row(args):
     im = im_min + (im_max - im_min) * y / height
     row = np.zeros((width, 3), dtype=np.uint8)
 
-    if y % 10 == 0:
-        with open("render.log", "a") as f:
-            f.write(f"\n[Frame {frame_id}] ROW {y} start\n")
+    # Avoid chatty logging from worker processes; it can become a bottleneck and
+    # can appear as a "hang" when many processes contend for the same file.
 
     for x in range(width):
         re = re_min + (re_max - re_min) * x / width
@@ -24,16 +24,9 @@ def render_row(args):
         n  = 0
 
         try:
-            max_internal_steps = 50000
-            internal_steps     = 0
             while (z.real ** 2 + z.imag ** 2) <= 4 and n < max_iter:
                 z = z * z + c
                 n += 1
-                internal_steps += 1
-                if internal_steps > max_internal_steps:
-                    with open("render.log", "a") as f:
-                        f.write(f"[Frame {frame_id}] STALL at pixel ({x},{y}), breaking loop\n")
-                    break
         except Exception as e:
             with open("render.log", "a") as f:
                 f.write(f"[Frame {frame_id}] ERROR in pixel ({x},{y}) - z={z}, c={c}, err={e}\n")
@@ -72,13 +65,24 @@ def mandelbrot_ap(center, zoom, width, height, max_iter, frame_id=None):
     with open("render.log", "a") as f:
         f.write(f"[Frame {frame_id}] Mandelbrot Start - Re:({re_min},{re_max}), Im:({im_min},{im_max})\n")
 
+    # Process pools are optional: on Windows (spawn) and in some constrained
+    # environments, the overhead/IPC can dominate and look like a deadlock.
+    # Default is single-process unless explicitly enabled.
+    use_pool = os.getenv("MANDEL_USE_PROCESS_POOL", "0").strip() == "1"
+
     try:
-        with ProcessPoolExecutor() as pool:
-            args = [
-                (y, width, height, re_min, re_max, im_min, im_max, max_iter, frame_id)
-                for y in range(height)
-            ]
-            for y_index, row in pool.map(render_row, args):
+        args = [
+            (y, width, height, re_min, re_max, im_min, im_max, max_iter, frame_id)
+            for y in range(height)
+        ]
+
+        if use_pool:
+            with ProcessPoolExecutor() as pool:
+                for y_index, row in pool.map(render_row, args):
+                    buf[y_index] = row
+        else:
+            for a in args:
+                y_index, row = render_row(a)
                 buf[y_index] = row
     except Exception as e:
         with open("render.log", "a") as f:

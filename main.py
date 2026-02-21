@@ -3,6 +3,7 @@
 import sys
 import time
 import subprocess
+import math
 from pathlib import Path
 
 import argparse
@@ -13,6 +14,9 @@ from PIL import Image
 
 # ─── GPU‐accelerated renderer ────────────────────────────────────────────────
 from gpu_renderer import render_gpu_frame, zoom_fits_double
+
+# ─── CPU perturbation renderer for very deep zooms ───────────────────────────
+from perturbation_renderer import render_perturbation_frame
 
 # ─── CPU/mpmath arbitrary‐precision renderer ─────────────────────────────────
 from renderer import mandelbrot_ap
@@ -82,20 +86,34 @@ def render_frame(i: int, center: tuple, zoom) -> None:
     log(f"[Frame {i:04d}] START: center={center}, zoom={zoom}, path={output_path}")
     t0 = time.time()
     try:
-        # GPU path if float(zoom) < 1e12
+        # 1) GPU path when zoom is within a safe float64 regime.
+        #    Note: float(mpf("1e480")) becomes inf, which correctly triggers non-GPU paths.
         z_float = float(zoom)
-        if zoom_fits_double(z_float):
+        if math.isfinite(z_float) and zoom_fits_double(z_float):
             img = render_gpu_frame(center, z_float, WIDTH, HEIGHT, MAX_ITER)
         else:
-            # CPU/mpmath fallback
-            img = mandelbrot_ap(
-                center=center,
-                zoom=mpf(zoom),
-                width=WIDTH,
-                height=HEIGHT,
-                max_iter=MAX_ITER,
-                frame_id=i
-            )
+            # 2) Perturbation path for deep zooms.
+            #    This is dramatically faster than per-pixel mpmath and avoids early stalls.
+            try:
+                img = render_perturbation_frame(
+                    center=center,
+                    zoom=zoom,
+                    width=WIDTH,
+                    height=HEIGHT,
+                    max_iter=MAX_ITER,
+                    frame_id=i,
+                )
+            except Exception as perturb_err:
+                # 3) Last-resort: pure mpmath renderer (slow, but can salvage correctness).
+                log(f"[Frame {i:04d}] Perturbation failed ({perturb_err}); falling back to mpmath CPU renderer")
+                img = mandelbrot_ap(
+                    center=center,
+                    zoom=mpf(zoom),
+                    width=WIDTH,
+                    height=HEIGHT,
+                    max_iter=MAX_ITER,
+                    frame_id=i
+                )
     except Exception as e:
         log(f"[Frame {i:04d}] ERROR during render: {e}")
         return
@@ -125,7 +143,7 @@ def render_frame(i: int, center: tuple, zoom) -> None:
 #   crop_scale = zoom_factors[prev_i] / zoom_factors[curr_i],
 # then resize back to (WIDTH, HEIGHT), and save as frame_{curr_i:04d}.png.
 # ────────────────────────────────────────────────────────────────────────────────
-def crop_and_resize(prev_i: int, curr_i: int, zoom_factors: np.ndarray) -> None:
+def crop_and_resize(prev_i: int, curr_i: int, r, zoom_prev, zoom_curr) -> None:
     base_path   = Path(OUTPUT_DIR) / f"frame_{prev_i:04d}.png"
     target_path = Path(OUTPUT_DIR) / f"frame_{curr_i:04d}.png"
 
@@ -142,10 +160,9 @@ def crop_and_resize(prev_i: int, curr_i: int, zoom_factors: np.ndarray) -> None:
     img = Image.open(str(base_path))
     w, h = img.size  # should match (WIDTH, HEIGHT)
 
-    # 2) Compute crop_scale = zoom_prev / zoom_curr  (both mpf → float < 1.0)
-    zoom_prev = zoom_factors[prev_i]
-    zoom_curr = zoom_factors[curr_i]
-    crop_scale = float(zoom_prev / zoom_curr)  # 0 < crop_scale ≤ 1
+    # 2) Compute crop_scale = zoom_prev / zoom_curr.
+    #    Use mpf ratio for robustness at extreme zooms.
+    crop_scale = float(mpf(zoom_prev) / mpf(zoom_curr))  # 0 < crop_scale ≤ 1
 
     # 3) Determine pixel dims of the crop
     crop_w = max(1, int(round(w * crop_scale)))
@@ -182,25 +199,31 @@ def deep_zoom_pipeline() -> None:
         print(f"→ TOTAL_FRAMES = {TOTAL_FRAMES}. Nothing to do.")
         return
 
-    # 1) Compute per-frame multiplier r
+    # 1) Compute per-frame multiplier r (mpf)
     from mpmath import mpf
     r = (ZOOM_END / ZOOM_START) ** ( mpf(1) / mpf(TOTAL_FRAMES - 1) )
 
-    # 2) Build zoom_factors[i] = ZOOM_START * r^i (all mpf)
-    zoom_factors = [ZOOM_START * (r ** mpf(i)) for i in range(TOTAL_FRAMES)]
+    # 2) Stream zoom forward (avoid allocating 36k mpf objects and keeping them alive)
+    zoom = mpf(ZOOM_START)
+    last_anchor_i = 0
+    last_anchor_zoom = zoom
 
     # 3) Loop through all frames
     for i in tqdm(range(TOTAL_FRAMES), desc="Rendering all frames"):
         center = START_CENTER  # no pan, pure zoom-in-place
-        zoom   = zoom_factors[i]
 
         if i % 10 == 0:
             # Full Mandelbrot render every 10th frame
             render_frame(i, center, zoom)
+            last_anchor_i = i
+            last_anchor_zoom = zoom
         else:
-            # Crop/resample from the last multiple-of-10 anchor
-            prev_anchor = (i // 10) * 10
-            crop_and_resize(prev_anchor, i, zoom_factors)
+            # Crop/resample from the last anchor
+            crop_and_resize(last_anchor_i, i, r, last_anchor_zoom, zoom)
+
+        # Advance zoom (except after final frame)
+        if i != TOTAL_FRAMES - 1:
+            zoom = zoom * r
 
     log("===== END DEEP ZOOM PIPELINE =====")
 

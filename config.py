@@ -54,7 +54,9 @@ ZOOM_END = r ** (new_frames - mpf(1))
 # Panning / Center: No pan—pure zoom in place at the coordinates you clicked:
 # (Both START_CENTER and END_CENTER must be identical for in‐place zoom.)
 # -----------------------------------------------------------------------------
-START_CENTER = (mpf("-1.156133259"), mpf("-0.278616381"))
+
+
+START_CENTER = (mpf("-1.7683830049648722692890015019043698317959353872497374995305914106735151309161730899233435108340865903508510745"), mpf("-0.0035564756051580419085635598914228270868497588929218730141623308457205131419997685780856071519939478350604525"))
 END_CENTER   = START_CENTER        # no panning
 
 # (TOTAL_FRAMES is defined here only for clarity; main.py will recompute it.)

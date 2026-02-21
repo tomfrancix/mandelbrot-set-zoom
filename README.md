@@ -23,7 +23,7 @@ A high-precision Mandelbrot set renderer written in Python that zooms smoothly f
 
 ## Requirements
 
-Install dependencies with:
+Install dependencies with: 
 
 ```
 pip install -r requirements.txt
@@ -40,7 +40,7 @@ Edit `config.py` to customize:
 ```
 START_CENTER = (-0.5, 0.0)
 END_CENTER = (-0.743643887037151, 0.13182590420533)
-FRAMES = 1800
+FRAMES = 12800
 ZOOM_START = 1e0
 ZOOM_END = 1e12
 WIDTH = 1920
