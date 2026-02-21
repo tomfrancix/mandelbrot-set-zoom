@@ -176,8 +176,14 @@ def render_gpu_frame(center, zoom, width, height, max_iter):
 # ------------------------------------------------------------
 def zoom_fits_double(zoom):
     """
-    Return True if `zoom < 1e12`, meaning double precision still has enough mantissa bits
-    so that “span = 4.0/zoom” is representable without catastrophic rounding. Otherwise,
-    fall back to a CPU/mpmath renderer.
+    Return True if `zoom` is within a conservative double-precision regime.
+
+    The previous 1e12 threshold was *very* conservative and forced early fallback to the
+    per-pixel mpmath CPU renderer, which is orders of magnitude slower.
+
+    Double precision has ~53 bits of mantissa (~15–16 decimal digits). For centres around
+    O(1) (typical Mandelbrot coordinates), pixel deltas remain representable until roughly
+    zoom ~ 1e15–1e16. We keep a safety margin and let deeper zooms use the perturbation
+    renderer (which avoids catastrophic cancellation by working in delta-coordinates).
     """
-    return zoom < 1e12
+    return zoom < 1e15
